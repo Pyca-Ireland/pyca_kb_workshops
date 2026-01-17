@@ -10,8 +10,8 @@ import threading
 # Slack App initialization
 # ----------------------------
 slack_app = App(
-    token='xoxb-10317831936498-10317840662818-qbH3TiPgDDxy1qirsUm7PZRe',
-    signing_secret='46ae6fc94f1467511c045586eda1c77d',
+    token=os.environ["SLACK_BOT_TOKEN"],
+    signing_secret=os.environ["SLACK_SIGNING_SECRET"],
 )
 
 flask_app = Flask(__name__)
