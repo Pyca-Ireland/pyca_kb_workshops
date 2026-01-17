@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Finder</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: #ededed;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: #ededed;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+        .search-container {
+            margin-bottom: 40px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+        }
+        .search-box input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            font-size: 0.95rem;
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #ededed;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-box input[type="text"]::placeholder {
+            color: #555;
+        }
+        .search-box input[type="text"]:focus {
+            border-color: #888;
+        }
+        .search-box button {
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            background: #ededed;
+            color: #0a0a0a;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .search-box button:hover {
+            background: #fff;
+        }
+        .sources {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .source-tag {
+            padding: 6px 12px;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            color: #666;
+            transition: all 0.3s;
+        }
+        .source-tag.active {
+            border-color: #0070f3;
+            color: #0070f3;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        .source-tag.active::before {
+            content: '';
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #0070f3;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: blink 1s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        #results {
+            background: #111;
+            border: 1px solid #222;
+            border-radius: 12px;
+            padding: 30px;
+            min-height: 250px;
+        }
+        .placeholder {
+            text-align: center;
+            padding: 50px 20px;
+            color: #444;
+        }
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid #333;
+            border-top-color: #ededed;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading p {
+            color: #555;
+            font-size: 0.9rem;
+        }
+        .results-content h1 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ededed;
+            margin: 30px 0 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #222;
+        }
+        .results-content h1:first-child {
+            margin-top: 0;
+        }
+        .results-content h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #ccc;
+            margin: 12px 0 8px;
+        }
+        .results-content p {
+            color: #888;
+            line-height: 1.7;
+        }
+        .results-content a {
+            color: #0070f3;
+            text-decoration: none;
+        }
+        .results-content a:hover {
+            text-decoration: underline;
+        }
+        .results-content hr {
+            border: none;
+            border-top: 1px solid #222;
+            margin: 30px 0;
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8rem; }
+            .search-box { flex-direction: column; }
+            .search-box button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Event Finder</h1>
+            <p class="subtitle">Search events across Dublin</p>
+        </header>
+
+        <div class="search-container">
+            <form class="search-box"
+                  hx-post="/search"
+                  hx-target="#results">
+                <input type="text"
+                       name="topic"
+                       placeholder="Search for events..."
+                       required
+                       autocomplete="off">
+                <button type="submit">Search</button>
+            </form>
+            <div class="sources">
+                <span class="source-tag">Luma</span>
+                <span class="source-tag">Meetup</span>
+                <span class="source-tag">Eventbrite</span>
+            </div>
+        </div>
+
+        <div id="results">
+            <div class="placeholder">
+                Search for tech meetups, networking events, workshops, and more
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sourceTags = document.querySelectorAll('.source-tag');
+
+        document.body.addEventListener('htmx:beforeRequest', function(evt) {
+            document.getElementById('results').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Searching across platforms...</p>
+                </div>
+            `;
+            sourceTags.forEach(tag => tag.classList.add('active'));
+        });
+
+        document.body.addEventListener('htmx:afterRequest', function(evt) {
+            sourceTags.forEach(tag => tag.classList.remove('active'));
+        });
+    </script>
+</body>
+</html>
